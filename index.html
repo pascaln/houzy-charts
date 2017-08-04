@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+text {
+    color: black;
+}
+.line {
+    stroke: #dc3912;
+    stroke-width: 1px;
+}
+
+.line-10 {
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.bar-purble {
+    fill: #81358a;
+}
+.bar-orange {
+    fill: #f86223;
+}
+.bar-red {
+    fill: #dc3912;
+}
+
+.bar-text {
+    fill: white;
+}
+
+.grid line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
+
+.grid path {
+    stroke-width: 0;
+}
+
+</style>
+<body>
+
+<!-- load the d3.js library -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+    var data2 = {
+        "lines" : [
+            {
+                label: "Heizung",
+                position: 1,
+                data: [
+                    {"start" : "1-Jan-1990", "end": "31-Dec-1999", "class": "bar-purble", position: 1},
+                    {"start" : "1-Jan-2000", "end": "31-Dec-2007", "class": "bar-orange", position: 1},
+                    {"start" : "1-Jan-2008", "end": "31-Dec-2019", "class": "bar-red", position: 1}
+                ]
+            },
+            {
+                label: "Dach",
+                position: 2,
+                data: [
+                    {"start" : "1-Jan-1970", "end": "31-Dec-2000", "class": "bar-purble", position: 2},
+                    {"start" : "1-Jan-2001", "end": "31-Dec-2014", "class": "bar-orange", position: 2},
+                    {"start" : "1-Jan-2015", "end": "31-Dec-2029", "class": "bar-red", position: 2}
+                ]
+            },
+            {
+                label: "Fussboden",
+                position: 3,
+                data: [
+                    {"start" : "1-Jan-1975", "end": "31-Dec-1994", "class": "bar-purble", position: 3},
+                    {"start" : "1-Jan-1995", "end": "31-Dec-2003", "class": "bar-orange", position: 3},
+                    {"start" : "1-Jan-2004", "end": "31-Dec-2015", "class": "bar-red", position: 3}
+                ]
+            },
+            {
+                label: "Wärmeverteilung",
+                position: 4,
+                data: [
+                    {"start" : "1-Jan-1975", "end": "31-Dec-1994", "class": "bar-purble", position: 4},
+                    {"start" : "1-Jan-1995", "end": "31-Dec-2003", "class": "bar-orange", position: 4},
+                    {"start" : "1-Jan-2004", "end": "31-Dec-2015", "class": "bar-red", position: 4}
+                ]
+            },
+            {
+                label: "Sanitär",
+                position: 5,
+                data: [
+                    {"start" : "1-Jan-1975", "end": "31-Dec-1994", "class": "bar-purble", position: 5},
+                    {"start" : "1-Jan-1995", "end": "31-Dec-2003", "class": "bar-orange", position: 5},
+                    {"start" : "1-Jan-2004", "end": "31-Dec-2015", "class": "bar-red", position: 5}
+                ]
+            },
+            {
+                label: "Elektro",
+                position: 6,
+                data: [
+                    {"start" : "1-Jan-1975", "end": "31-Dec-1994", "class": "bar-purble", position: 6},
+                    {"start" : "1-Jan-1995", "end": "31-Dec-2003", "class": "bar-orange", position: 6},
+                    {"start" : "1-Jan-2004", "end": "31-Dec-2015", "class": "bar-red", position: 6}
+                ]
+            },
+        ]
+    }
+
+
+
+    // parse the date / time
+    var parseTime = d3.timeParse("%d-%b-%Y");
+    var positionSpaceHeight = 30;
+    var barHeight = 20;
+
+    // set the dimensions and margins of the graph
+    var margin = {top: 20, right: 20, bottom: 30, left: 150},
+            width = 500 - margin.left - margin.right,
+            height = ((data2.lines.length -1) * (barHeight + positionSpaceHeight)) + (positionSpaceHeight - barHeight) - margin.top - margin.bottom;
+
+    // set the ranges
+    var x = d3.scaleTime().domain([new Date(1970,0,0), new Date(2030,0,0)]).range([0, width]);
+    var y = d3.scaleLinear().domain([0, 500]).range([height, 0]);
+
+    // append the svg obgect to the body of the page
+    // appends a 'group' element to 'svg'
+    // moves the 'group' element to the top left margin
+    var svg = d3.select("body").append("svg")
+            .attr("class", "chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
+
+    // format the data
+    data2.lines.forEach(function(d) {
+        d.data.forEach(function (d) {
+            d.start = parseTime(d.start);
+            d.end = parseTime(d.end);
+        })
+    });
+
+    // Scale the range of the data
+   // x.domain(d3.extent(data, function(d) { return d.date; }));
+
+    // append the rectangles for the bar chart
+   var barGroup = svg.selectAll()
+            .data(data2.lines)
+            .enter()
+            .selectAll(".bar");
+
+    barGroup.data(function(d) { return d.data; })
+            .enter().append("rect")
+                .attr("class", function(d) { return d.class; })
+                .attr("x", function(d) { return x(d.start); })
+                .attr("width", function(d) { return x(d.end) - x(d.start); })
+                .attr("y", function(d) { return  d.position * positionSpaceHeight; })
+                .attr("height", barHeight );
+
+    barGroup.data(function(d) { return d.data; })
+            .enter().append("text")
+            .attr("class", "bar-text")
+            .attr("x", function(d) { return x(d.start) + 3; })
+            .attr("y", function(d) { return  d.position * positionSpaceHeight + barHeight - 5; })
+            .text("10");
+
+    var thisYear = new Date(new Date().getFullYear(),0,0);
+    var thisYearPlus10 = new Date(new Date().getFullYear() + 10,0,0);
+
+    var lines = svg.append("g");
+    lines.append("g")
+            .append("line")
+            .attr("class", "line")
+            .attr("x1", function(d) { return x(thisYear); })
+            .attr("y1", 0)
+            .attr("x2", function(d) { return x(thisYear); })
+            .attr("y2", height)
+            .style("stroke-dasharray", ("5, 3"))
+    lines.append("line")
+            .attr("class", "line-10")
+            .attr("x1", function(d) { return x(thisYearPlus10); })
+            .attr("y1", 0)
+            .attr("x2", function(d) { return x(thisYearPlus10); })
+            .attr("y2", height)
+            .style("stroke-dasharray", ("5, 3"));
+
+
+    //Y-Axis Labels
+    var textGroup = svg.append("g");
+    textGroup.selectAll()
+            .data(data2.lines)
+            .enter()
+            .append("text")
+            .attr("x", -120)
+            .attr("y", function(d) { return  d.position * positionSpaceHeight + 15; })
+            .text(function (d) {return d.label});
+
+     // Add the X Axis
+    svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .attr("class", "grid")
+            .call(d3.axisBottom(x).ticks(5).tickSize(-height).tickFormat(""));
+
+    // add the X Axis
+    svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+    // Add the Y Axis
+    svg.append("g")
+            .call(d3.axisLeft(y).ticks(0));
+
+
+</script>
+</body>
